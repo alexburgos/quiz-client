@@ -14,6 +14,7 @@ class App extends Component {
       correctAnswers: 0,
       originalQuestionLength: 0,
       answeredQuestionIds: [],
+      isLoadingNextQuestion: false,
     };
   }
 
@@ -43,15 +44,22 @@ class App extends Component {
   };
 
   randomizeQuestion = () => {
-    let { questions } = this.state;
+    let { 
+      questions,
+      isLoadingNextQuestion
+    } = this.state;
     if (questions.length === 0) {
-      this.setState({ currentQuestion: null })
+      this.setState({ 
+        currentQuestion: null,
+        isLoadingNextQuestion: false
+      })
       return;
     }
 
     let randomNum = Math.floor(Math.random() * questions.length);
     this.setState({ 
-      currentQuestion: questions[randomNum]
+      currentQuestion: questions[randomNum],
+      isLoadingNextQuestion: isLoadingNextQuestion ? false : isLoadingNextQuestion
     });
   }
 
@@ -64,39 +72,8 @@ class App extends Component {
     let unansweredQuestions = questions.filter( question => !answeredQuestionIds.includes(question.id))
     this.setState({
       questions: unansweredQuestions,
-      isLoadingQuestions: false
     }, this.randomizeQuestion);
   }
-
-  // handleChosenAnswer = ({ questionId, choice }) => {
-  //   fetch(`https://futu-quiz-api.now.sh/answer/${questionId}`, getOptions)
-  //     .then(response => {
-  //       if (response.ok) {
-  //         return response.json();
-  //       }
-  //       throw new Error(response.status);
-  //     })
-  //     .then(data => {
-  //       let { answer } = data;
-  //       let { correctAnswers } = this.state;
-  //       let answeredQuestionIds = [];
-        
-  //       //normalize answer input with answer from the server
-  //       if (answer.toLowerCase() === choice.toLowerCase()) {
-  //         console.log('Correct!');
-  //         answeredQuestionIds.push(questionId);
-  //         this.setState({ correctAnswers: correctAnswers + 1 });
-  //       }
-
-  //       this.setState({
-  //         answeredQuestionIds: answeredQuestionIds
-  //       }, this.showNextQuestion);
-  //     })
-  //     .catch((err) => {
-  //       alert('Error fetching questions')
-  //       console.error(err);
-  //     });
-  // }
 
   setAnsweredQuestions = (questionId, correct) => {
     let { correctAnswers } = this.state;
@@ -104,20 +81,20 @@ class App extends Component {
 
     answered.push(questionId);
 
-    console.log(answered);
+    console.log(answered, this.state.isLoadingNextQuestion);
 
     this.setState({
       answeredQuestionIds: answered,
       correctAnswers: correct ? correctAnswers + 1 : correctAnswers,
-      isLoadingQuestions: true,
+      isLoadingNextQuestion: true,
     }, this.showNextQuestion);
   }
 
   render() {
     let {
-      questions,
       currentQuestion,
       isLoadingQuestions,
+      isLoadingNextQuestion,
       answeredQuestionIds,
       correctAnswers,
       originalQuestionLength
@@ -126,10 +103,10 @@ class App extends Component {
     return (
       <div className="App">
         <header className="App-header">
-          <h1>Futurice's Totally Random Trivia</h1>
+          <h1>Totally Random Trivia</h1>
         </header>
 
-        {!isLoadingQuestions && currentQuestion &&
+        {!isLoadingQuestions && !isLoadingNextQuestion && currentQuestion &&
           <Question 
             choices={currentQuestion.choices} 
             questionId={currentQuestion.id} 
@@ -143,7 +120,15 @@ class App extends Component {
             <span className="App-loading-icon">&#9881;</span>
           </div>
         }
-        {!isLoadingQuestions && questions.length === 0 && answeredQuestionIds.length >= originalQuestionLength &&
+
+        {isLoadingNextQuestion &&
+          <div className="App-loading">
+            <span>Loading Next Question...</span>
+            <span className="App-loading-icon">&#9881;</span>
+          </div>
+        }
+
+        {!isLoadingQuestions && !isLoadingNextQuestion && answeredQuestionIds.length >= originalQuestionLength &&
           <div className="App-results">
             <p>Congrats on finishing the quiz! You had {correctAnswers} correct answers.</p>
             <button onClick={() => window.location.reload() }>Want to try again?</button>

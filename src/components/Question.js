@@ -1,7 +1,35 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import './Question.css';
 import { getOptions } from '../utils';
+
+function submitAnswer( questionId, answer , setAnsweredQuestions) {
+  console.log(questionId, answer);
+  fetch(`https://futu-quiz-api.now.sh/answer/${questionId}`, getOptions)
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      }
+      throw new Error(response.status);
+    })
+    .then(data => {
+      let correctAnswer;
+
+      //normalize answer input with answer from the server
+      if (data.answer.toLowerCase() === answer.toLowerCase()) {
+        console.log('Correct!');
+        correctAnswer = true;
+      } else {
+        console.log('Womp Womp!');
+        correctAnswer = false;
+      }
+      setAnsweredQuestions(questionId, correctAnswer)
+    })
+    .catch((err) => {
+      alert('Error fetching questions')
+      console.error(err);
+    });
+}
 
 const Question = props => {
   let {
@@ -11,59 +39,19 @@ const Question = props => {
     setAnsweredQuestions
   } = props;
 
-  const [answer, saveAnswer] = useState({ questionId: questionId, text: '' });
   const [inputState, setInputState] = useState('');
-
-  // useEffect(() => {
-  //   console.log(`You chose `, answer);
-  //   if (answer.questionId && answer.choice.length > 0) {
-  //     console.log(`You chose `, answer);
-  //     sendAnswer(answer);
-  //   }
-  // });
-
-  useEffect(() =>    
-    async () => {
-      console.log(answer);
-      if (answer.text && answer.text.length > 0) {
-        const res = await fetch(`https://futu-quiz-api.now.sh/answer/${questionId}`, getOptions);
-        const json = await res.json();
-        let answeredQuestionIds = [];
-        let correctAnswer;
-
-        //normalize answer input with answer from the server
-        if (json.answer.toLowerCase() === answer.text.toLowerCase()) {
-          console.log('Correct!');
-          correctAnswer = true;
-        } else {
-          console.log('Womp Womp!');
-          correctAnswer = false;
-        }
-
-        answeredQuestionIds.push(questionId);
-        setAnsweredQuestions(questionId, correctAnswer);
-      }
-
-    }, [answer, questionId, setAnsweredQuestions]
-  );
-
-  console.log(inputState);
 
   return (
     <div className="Question">
       <h2 className="Question-text">{questionText}</h2>
-      {choices &&
-        <Fragment>
-          <ul className="Question-choices">
-            {choices.map((choice, i) => <li key={i} onClick={() => saveAnswer({ questionId, text: choice })}>{choice}</li>)}
-          </ul>
-          {/* {answer && <span>You chose: {answer}</span> } */}
-        </Fragment>
-      }
-      {!choices &&
+      {choices ?
+        <ul className="Question-choices">
+          {choices.map((choice, i) => <li key={i} onClick={() => submitAnswer(questionId, choice, setAnsweredQuestions) }>{choice}</li>)}
+        </ul>
+        :
         <div className="Question-input">
           <input type="text" value={inputState} placeholder="What is your answer?" onChange={(e) => setInputState(e.target.value)} />
-          <button onClick={() => saveAnswer({ questionId, text: inputState })}>Submit Answer</button>
+          <button onClick={inputState.length > 0 ? () => submitAnswer(questionId, inputState, setAnsweredQuestions) : null } disabled={inputState.length === 0 ? true : false}>Submit Answer</button>
         </div>
       }
     </div>

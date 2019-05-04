@@ -5,18 +5,17 @@
   align-items: center;
   height: 100vh;
   text-align: center;
-  overflow: hidden;
 }
 
 .App-header {
   background-color: #220469;
   color: white;
   display: flex;
-  font-size: 1.5em;
+  font-size: 1em;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 10vh;
+  min-height: 20vh;
   padding: 0 25px;
   width: 100%;
 }
@@ -39,7 +38,7 @@
 .App-results {
   display: flex;
   flex-direction: column;
-  font-size: 2em;
+  font-size: 1.5em;
   justify-content: center;
   align-items: center;
   height: 100vh;
@@ -62,5 +61,16 @@
 
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media screen and (min-width: 550px) {
+  .App-header {
+    font-size: 1.5em;
+    height: 10vh;
+  }
+
+  .App-results {
+    font-size: 2em;
   }
 }
