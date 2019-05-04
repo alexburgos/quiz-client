@@ -15,6 +15,7 @@ class App extends Component {
       correctAnswers: 0,
       originalQuestionLength: 0,
       answeredQuestionIds: [],
+      // count: 0,
     };
 
     this.timer =  null;
@@ -29,9 +30,14 @@ class App extends Component {
     let count = 10;
     this.timer = setInterval(() => {
       count--;
+
       if (count === 0) {
         this.stopInterval();
       }
+
+      // this.setState({
+      //   count: count
+      // });
     }, 1000);
   }
 
@@ -108,13 +114,15 @@ class App extends Component {
       isLoadingQuestions,
       answeredQuestionIds,
       correctAnswers,
-      originalQuestionLength
+      originalQuestionLength,
+      // count
     } = this.state;
 
     return (
       <div className="App">
         <header className="App-header">
           <h1>Totally Random Trivia</h1>
+          {/* <p>Remaining time: {count}</p> */}
         </header>
 
         {!isLoadingQuestions && currentQuestion &&
