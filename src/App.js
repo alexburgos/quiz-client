@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
+import './Animation.css';
 import Question from './components/Question';
 import { getOptions } from './utils';
 
@@ -14,12 +15,28 @@ class App extends Component {
       correctAnswers: 0,
       originalQuestionLength: 0,
       answeredQuestionIds: [],
-      isLoadingNextQuestion: false,
     };
+
+    this.timer =  null;
   }
 
   componentDidMount() {
     this.getQuestions();
+    this.setCounter();
+  }
+
+  setCounter = () => {
+    let count = 10;
+    this.timer = setInterval(() => {
+      count--;
+      if (count === 0) {
+        this.stopInterval();
+      }
+    }, 1000);
+  }
+
+  stopInterval = () => {
+    clearInterval(this.timer);
   }
 
   getQuestions = () => {
@@ -45,21 +62,19 @@ class App extends Component {
 
   randomizeQuestion = () => {
     let { 
-      questions,
-      isLoadingNextQuestion
+      questions
     } = this.state;
+
     if (questions.length === 0) {
       this.setState({ 
         currentQuestion: null,
-        isLoadingNextQuestion: false
       })
       return;
     }
 
-    let randomNum = Math.floor(Math.random() * questions.length);
+    const randomNum = Math.floor(Math.random() * questions.length);
     this.setState({ 
       currentQuestion: questions[randomNum],
-      isLoadingNextQuestion: isLoadingNextQuestion ? false : isLoadingNextQuestion
     });
   }
 
@@ -81,12 +96,9 @@ class App extends Component {
 
     answered.push(questionId);
 
-    console.log(answered, this.state.isLoadingNextQuestion);
-
     this.setState({
       answeredQuestionIds: answered,
       correctAnswers: correct ? correctAnswers + 1 : correctAnswers,
-      isLoadingNextQuestion: true,
     }, this.showNextQuestion);
   }
 
@@ -94,7 +106,6 @@ class App extends Component {
     let {
       currentQuestion,
       isLoadingQuestions,
-      isLoadingNextQuestion,
       answeredQuestionIds,
       correctAnswers,
       originalQuestionLength
@@ -106,7 +117,7 @@ class App extends Component {
           <h1>Totally Random Trivia</h1>
         </header>
 
-        {!isLoadingQuestions && !isLoadingNextQuestion && currentQuestion &&
+        {!isLoadingQuestions && currentQuestion &&
           <Question 
             choices={currentQuestion.choices} 
             questionId={currentQuestion.id} 
@@ -116,22 +127,15 @@ class App extends Component {
         }
         {isLoadingQuestions &&
           <div className="App-loading">
-            <span>Loading Questions...</span>
-            <span className="App-loading-icon">&#9881;</span>
+            <div className="ripple"><div></div><div></div></div>
           </div>
         }
 
-        {isLoadingNextQuestion &&
-          <div className="App-loading">
-            <span>Loading Next Question...</span>
-            <span className="App-loading-icon">&#9881;</span>
-          </div>
-        }
-
-        {!isLoadingQuestions && !isLoadingNextQuestion && answeredQuestionIds.length >= originalQuestionLength &&
+        {!isLoadingQuestions && answeredQuestionIds.length >= originalQuestionLength &&
           <div className="App-results">
-            <p>Congrats on finishing the quiz! You had {correctAnswers} correct answers.</p>
-            <button onClick={() => window.location.reload() }>Want to try again?</button>
+            <p>You made it to the end!</p>
+            <p>You had {correctAnswers} correct answer{correctAnswers.length > 1 ? 's' : ''}.</p>
+            <button onClick={() => window.location.reload() }>Play Again</button>
           </div>
         }
       </div>
