@@ -64,6 +64,25 @@
   transform: scale(0.9);
 }
 
+.App-answer {
+  font-size: 1.5em;
+  opacity: 0;
+  transition: all 250ms linear;
+}
+
+.App-answer.correct {
+  color: #00B984;
+}
+
+.App-answer.incorrect {
+  color: #CA473D;
+}
+
+.App-answer.show {
+  opacity: 1;
+
+}
+
 /* Media Queries */
 
 @media screen and (min-width: 550px) {

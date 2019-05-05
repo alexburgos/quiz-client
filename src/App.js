@@ -1,8 +1,8 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
 import './App.css';
 import './Animation.css';
 import Question from './components/Question';
-import { getOptions } from './utils';
+import { getOptions, shuffleArray } from './utils';
 
 class App extends Component {
   constructor(props) {
@@ -15,36 +15,22 @@ class App extends Component {
       correctAnswers: 0,
       originalQuestionLength: 0,
       answeredQuestionIds: [],
-      // count: 0,
+      showIfCorrect: { show: false, correct: false },
     };
-
-    this.timer =  null;
   }
 
   componentDidMount() {
     this.getQuestions();
-    this.setCounter();
   }
 
-  setCounter = () => {
-    let count = 10;
-    this.timer = setInterval(() => {
-      count--;
-
-      if (count === 0) {
-        this.stopInterval();
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.currentQuestion && this.state.currentQuestion) {
+      if(prevState.currentQuestion.id !== this.state.currentQuestion.id) {
+        setTimeout(() => this.setState({ showIfCorrect: { ...this.state.showIfCorrect, show: false } }), 1500);
       }
-
-      // this.setState({
-      //   count: count
-      // });
-    }, 1000);
+    }
   }
-
-  stopInterval = () => {
-    clearInterval(this.timer);
-  }
-
+  
   getQuestions = () => {
     fetch(`https://futu-quiz-api.now.sh/questions`, getOptions)
       .then(response => {
@@ -54,8 +40,15 @@ class App extends Component {
         throw new Error(response.status);
       })
       .then(data => {
+        // Randomize choices in questions if present
+        let randomQuestions = data.map( (question) => {
+          if (question.choices) {
+            shuffleArray(question.choices);
+          }
+          return question;
+        })
         this.setState({
-          questions: data,
+          questions: randomQuestions,
           isLoadingQuestions: false,
           originalQuestionLength: data.length
         }, this.randomizeQuestion);
@@ -87,7 +80,7 @@ class App extends Component {
   showNextQuestion = () => {
     let {
       questions,
-      answeredQuestionIds
+      answeredQuestionIds,
     } = this.state;
 
     let unansweredQuestions = questions.filter( question => !answeredQuestionIds.includes(question.id))
@@ -105,33 +98,36 @@ class App extends Component {
     this.setState({
       answeredQuestionIds: answered,
       correctAnswers: correct ? correctAnswers + 1 : correctAnswers,
+      showIfCorrect: { ...this.state.showIfCorrect, show: true, correct: correct }
     }, this.showNextQuestion);
   }
 
+
   render() {
-    let {
+    const {
       currentQuestion,
       isLoadingQuestions,
       answeredQuestionIds,
       correctAnswers,
       originalQuestionLength,
-      // count
+      showIfCorrect,
     } = this.state;
 
     return (
       <div className="App">
         <header className="App-header">
           <h1>Totally Random Trivia</h1>
-          {/* <p>Remaining time: {count}</p> */}
         </header>
 
-        {!isLoadingQuestions && currentQuestion &&
-          <Question 
-            choices={currentQuestion.choices} 
-            questionId={currentQuestion.id} 
-            questionText={currentQuestion.question}
-            setAnsweredQuestions={this.setAnsweredQuestions}
-          />
+        {!isLoadingQuestions && currentQuestion && answeredQuestionIds.length < originalQuestionLength &&
+          <Fragment>
+            <Question
+              choices={currentQuestion.choices}
+              questionId={currentQuestion.id}
+              questionText={currentQuestion.question}
+              setAnsweredQuestions={this.setAnsweredQuestions}
+            />
+          </Fragment>
         }
         {isLoadingQuestions &&
           <div className="App-loading">
@@ -145,6 +141,10 @@ class App extends Component {
             <p>You had {correctAnswers} correct answer{correctAnswers.length > 1 ? 's' : ''}.</p>
             <button onClick={() => window.location.reload() }>Play Again</button>
           </div>
+        }
+
+        {answeredQuestionIds.length < originalQuestionLength &&
+          <p className={`App-answer ${showIfCorrect.show ? "show" : ""} ${showIfCorrect.correct ? "correct" : "incorrect"}`}>Your answer was {showIfCorrect.correct ? 'Correct' : 'Incorrect'}.</p>
         }
       </div>
     );

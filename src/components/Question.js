@@ -15,22 +15,6 @@ function usePrevious(value) {
   return ref.current;
 }
 
-/**
- * Randomize array elements using the Fisher-Yates (aka Knuth) Shuffle.
- * https://github.com/Daplie/knuth-shuffle
- */
-function shuffleArray(array) {
-  let currentIndex = array.length, temporaryValue, randomIndex;
-  while (0 !== currentIndex) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex -= 1;
-    temporaryValue = array[currentIndex];
-    array[currentIndex] = array[randomIndex];
-    array[randomIndex] = temporaryValue;
-  }
-  return array;
-}
-
 function submitAnswer(questionId, answer, setAnsweredQuestions) {
   fetch(`https://futu-quiz-api.now.sh/answer/${questionId}`, getOptions)
     .then(response => {
@@ -54,15 +38,6 @@ function submitAnswer(questionId, answer, setAnsweredQuestions) {
       alert('Error fetching questions')
       console.error(err);
     });
-}
-
-function renderRandomChoices(choices, setAnsweredQuestions, setLoadingQuestion, questionId) {
-  shuffleArray(choices);
-  return choices.map((choice, i) => {
-    return (
-      <li key={i} onClick={() => { submitAnswer(questionId, choice, setAnsweredQuestions); setLoadingQuestion(true); }}>{choice}</li>
-    );
-  });
 }
 
 const Question = props => {
@@ -96,7 +71,11 @@ const Question = props => {
             <h2 className="Question-text">{questionText}</h2>
             {choices ?
               <ul className="Question-choices">
-                {renderRandomChoices(choices, setAnsweredQuestions, setLoadingQuestion, questionId)}
+                {choices.map((choice, i) => {
+                    return (
+                      <li key={i} onClick={() => { submitAnswer(questionId, choice, setAnsweredQuestions); setLoadingQuestion(true); }}>{choice}</li>
+                    );
+                  })}
               </ul>
               :
               <div className="Question-input">
