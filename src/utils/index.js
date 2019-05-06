@@ -1,7 +1,3 @@
-/**
- * Randomize array elements using the Fisher-Yates (aka Knuth) Shuffle.
- * https://github.com/Daplie/knuth-shuffle
- */
 export const getOptions = {
   method: 'GET',
   credentials: 'same-origin',
