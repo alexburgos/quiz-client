@@ -138,7 +138,7 @@ class App extends Component {
         {!isLoadingQuestions && answeredQuestionIds.length >= originalQuestionLength &&
           <div className="App-results">
             <p>You made it to the end!</p>
-            <p>You had {correctAnswers} correct answer{correctAnswers.length > 1 ? 's' : ''}.</p>
+            <p>Correct answers: {correctAnswers}.</p>
             <button onClick={() => window.location.reload() }>Play Again</button>
           </div>
         }
